@@ -1,6 +1,6 @@
 FROM php:8.3-fpm
 
-# Instalar dependencias del sistema
+# Instalar dependencias del sistema y Node.js
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -13,7 +13,9 @@ RUN apt-get update && apt-get install -y \
     unzip \
     nginx \
     sqlite3 \
-    libsqlite3-dev
+    libsqlite3-dev \
+    nodejs \
+    npm
 
 # Limpiar cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -34,8 +36,17 @@ COPY composer.json composer.lock ./
 # Instalar dependencias de Composer
 RUN composer install --no-dev --no-scripts --optimize-autoloader
 
+# Copiar package.json para cache de Docker
+COPY package.json package-lock.json* ./
+
+# Instalar dependencias de Node.js
+RUN npm install
+
 # Copiar el resto de archivos de la aplicación
 COPY . .
+
+# Compilar assets de Vite para producción
+RUN npm run build
 
 # Copiar y dar permisos al script de inicio
 COPY docker-entrypoint.sh /usr/local/bin/
