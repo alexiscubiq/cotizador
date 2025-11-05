@@ -37,6 +37,10 @@ RUN composer install --no-dev --no-scripts --optimize-autoloader
 # Copiar el resto de archivos de la aplicación
 COPY . .
 
+# Copiar y dar permisos al script de inicio
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 # Cambiar permisos
 RUN chown -R www-data:www-data /var/www \
     && chmod -R 755 /var/www/storage \
@@ -46,4 +50,4 @@ RUN chown -R www-data:www-data /var/www \
 EXPOSE 8080
 
 # Comando de inicio
-CMD php artisan serve --host=0.0.0.0 --port=8080
+CMD ["/usr/local/bin/docker-entrypoint.sh"]
