@@ -7,15 +7,18 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libonig-dev \
     libxml2-dev \
+    libzip-dev \
     zip \
     unzip \
-    nginx
+    nginx \
+    sqlite3 \
+    libsqlite3-dev
 
 # Limpiar cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Instalar extensiones de PHP
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+RUN docker-php-ext-install pdo_mysql pdo_sqlite mbstring exif pcntl bcmath gd zip
 
 # Instalar Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -23,11 +26,14 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Establecer directorio de trabajo
 WORKDIR /var/www
 
-# Copiar archivos de la aplicación
-COPY . .
+# Copiar archivos composer primero para cache de Docker
+COPY composer.json composer.lock ./
 
 # Instalar dependencias de Composer
-RUN composer install --no-dev --optimize-autoloader
+RUN composer install --no-dev --no-scripts --optimize-autoloader
+
+# Copiar el resto de archivos de la aplicación
+COPY . .
 
 # Cambiar permisos
 RUN chown -R www-data:www-data /var/www \
