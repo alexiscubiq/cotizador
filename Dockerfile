@@ -48,6 +48,13 @@ COPY . .
 # Compilar assets de Vite para producción
 RUN npm run build
 
+# Configurar nginx
+COPY nginx.conf /etc/nginx/sites-available/default
+RUN ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
+
+# Configurar PHP-FPM
+COPY php-fpm.conf /usr/local/etc/php-fpm.d/www.conf
+
 # Copiar y dar permisos al script de inicio
 COPY docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
